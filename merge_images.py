@@ -17,7 +17,7 @@ def calculateTileDimensions(num_images, columns = None):
   The number of columns may be specified, or it can be left as None in which case round(sqrt(num_images)) will be used.
   """
   if columns is None: 
-    columns = int(round(math.sqrt(num_images), 0))
+    columns = 1 #int(round(math.sqrt(num_images), 0))
   elif columns <= 0:
     columns = num_images
   else:
@@ -66,6 +66,24 @@ def mergeImages(files, output, columns = None, tile_width = None, tile_height = 
 
   print('\nMerged {} images into {}x{} pixel image "{}".'.format(len(files), out.size[0], out.size[1], output))
   print('The images were arranged into {} rows and {} columns with {}x{} pixel tiles.'.format(rows, cols, tile_width, tile_height))
+  
+  # Lines that generate the npc-xyz.txt file:
+  
+  if npctxt:
+      try:
+        frames = rows
+        with open('npc-xyz.txt', 'w') as txtfile:
+            print('gfxwidth=%d' % (tile_width))
+            print('gfxheigth=%d' % (tile_height))
+            txtfile.write('gfxwidth=%d\n' % (tile_width))
+            txtfile.write('gfxheigth=%d\n' % (tile_height))
+            print('frames=%d\n' % (frames))
+            txtfile.write('frames=%d\n' % (frames))
+      except:
+        print('Error creating npc.txt')
+      else:
+        print('npc.txt created successfully')
+
 
 if __name__ == "__main__":
   import os, sys
@@ -77,13 +95,19 @@ if __name__ == "__main__":
   parser.add_argument('-f', '--force', action='store_true', help='overwrite output file without prompting')
   parser.add_argument('-H', '--height', type=int, help='the height of the tiles; ignored if width not specified (default: the tallest image)')
   parser.add_argument('-W', '--width', type=int, help='the width of the tiles; ignored if height not specified (default: the widest image)')
-  parser.add_argument('-o', '--output', default='out.png', help='the output file (default: out.png)')
+  parser.add_argument('-o', '--output', default='npc-xyz.png', help='the output file (default: out.png)')
+ 
   args = parser.parse_args()
   
   if not args.force and os.path.exists(args.output):
-    ans = input('"{}" already exists, overwrite? '.format(args.output))
+    ans = input('File "{}" already exists, overwrite? '.format(args.output))
     if ans.lower() != 'y' and ans.lower() != 'yes' and ans.lower() != 'yes, please':
       print('Aborted.')
       exit()
-   
+
+  
+  ans = input('Generate npc.txt for "{}"? '.format(args.output))
+  npctxt = (ans.lower() == 'y' or ans.lower() == 'yes' or ans.lower() == 'yes, please')
+    
+
   mergeImages(args.file, args.output, columns=args.columns, tile_width=args.width, tile_height=args.height)
